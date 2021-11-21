@@ -2,6 +2,7 @@
   "name": "example-no-bundle",
   "version": "1.0.0",
   "main": "server.js",
+  "license": "MIT",
   "scripts": {
     "start": "node ../packages/vite-dev-server/dist/server.js"
   },
