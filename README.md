@@ -1,1 +1,1 @@
-Exploration on packaging scheme of front-end modernization
+Exploration bundle in modern front-end
