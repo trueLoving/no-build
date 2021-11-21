@@ -1,1 +1,1 @@
-Exploration on modernization scheme of front end Engineering
+Exploration on packaging scheme of front-end modernization
