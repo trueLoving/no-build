@@ -1,4 +1,3 @@
-// 用最传统的方式
 const fs = require('fs');
 const path = require('path');
 const Koa = require('koa');
@@ -7,7 +6,12 @@ const compileDom = require('@vue/compiler-dom');
 
 const app = new Koa();
 
-function rewriteImport(content) {
+function readFile(filename, encoding = 'utf-8', root = process.cwd()): string {
+  const p = path.resolve(root, filename)
+  return fs.readFileSync(p, encoding)
+}
+
+function rewriteImport(content: string): string {
   // from 'xx'
   // from "xx"
   // 第三方模块做语法解析，仕最靠谱的
@@ -28,7 +32,7 @@ app.use(async (ctx) => {
   } = ctx;
 
   if (url == '/') {
-    let content = fs.readFileSync('./index.html', 'utf-8');
+    let content = readFile('./index.html', 'utf-8');
     content = content.replace(
       '<script',
       `
@@ -40,24 +44,23 @@ app.use(async (ctx) => {
     ctx.type = 'text/html';
     ctx.body = content;
   } else if (url.endsWith('.js')) {
-    const p = path.resolve(__dirname, url.slice(1));
-    const content = fs.readFileSync(p, 'utf-8');
+    const content = readFile(url.slice(1), 'utf-8');
     ctx.type = 'application/javascript';
     // import xx ffrom 'vue'; 改造成 import xx from '/@module/vue'
     ctx.body = rewriteImport(content);
   } else if (url.startsWith('/@modules/')) {
     // @todo 去node_module找的
-    const prefix = path.resolve(__dirname, 'node_modules', url.replace('/@modules/', ''));
+    const prefix = path.resolve('node_modules', url.replace('/@modules/', ''));
     const module = require(prefix + '/package.json').module;
     const p = path.resolve(prefix, module);
     // console.log('p', p);
-    const ret = fs.readFileSync(p, 'utf-8');
+    const ret = readFile(p, 'utf-8');
     ctx.type = 'application/javascript';
     ctx.body = rewriteImport(ret);
   } else if (url.indexOf('.vue') > -1) {
     // 解析单文件组件
-    const p = path.resolve(__dirname, url.split('?')[0].slice(1));
-    const { descriptor } = compilerSfc.parse(fs.readFileSync(p, 'utf-8'));
+    const p = url.split('?')[0].slice(1);
+    const { descriptor } = compilerSfc.parse(readFile(p, 'utf-8'));
 
     if (!query.type) {
       // 这是script
@@ -77,9 +80,9 @@ app.use(async (ctx) => {
       ctx.body = rewriteImport(render);
     }
   } else if (url.endsWith('.css')) {
-    const p = path.resolve(__dirname, url.slice(1));
-    const file = fs.readFileSync(p, 'utf-8');
-    console.log(file.toString())
+    const p = path.resolve(url.slice(1));
+    const file = readFile(p, 'utf-8');
+    // console.log(file.toString())
     const content = `
         const css = \`${file.toString()}\`
         let link = document.createElement('style')
@@ -97,5 +100,5 @@ app.use(async (ctx) => {
 });
 
 app.listen(3001, () => {
-  console.log('3001');
+  console.log(`listening on http://localhost:3001`);
 });

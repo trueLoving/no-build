@@ -118,5 +118,6 @@ dist
 .pnp.*
 
 www
-packages
+packages/hmr_engine
+packages/snowpack
 playground
